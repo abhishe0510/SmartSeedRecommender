@@ -1,0 +1,5 @@
+Input:
+30.0,80.0,1500.0,6.5,clay,kharif
+Recommendations:
+Rice
+---

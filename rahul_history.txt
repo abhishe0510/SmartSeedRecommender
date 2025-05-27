@@ -1,0 +1,13 @@
+Input:
+20.0,50.0,600.0,6.5,loamy,rabi
+Recommendations:
+Wheat
+Barley
+Gram (Chickpea)
+Pea
+---
+Input:
+30.0,80.0,1800.0,6.5,clay,kharif
+Recommendations:
+Rice
+---
