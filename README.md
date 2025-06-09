@@ -1,32 +1,35 @@
 # 🌾 Smart Seed Recommender 🌱
 
-A **Java-based intelligent farming assistant** that helps farmers pick the best crops (seeds) based on local climate, soil, and profitability.
+A **Java-based intelligent farming assistant** that recommends the most suitable crops (seeds) based on environmental conditions, soil properties, and economic potential.
 
 ---
 
-## 🔧 Features
+## 🚀 Features
 
-🟢 **Smart Recommendations**  
-🔹 Based on:
-- 🌡️ Temperature  
-- 💧 Humidity  
-- 🌧️ Rainfall  
-- 🌱 Soil pH  
-- 🧪 Soil Type  
-- 🌤️ Season  
+### ✅ Smart Crop Recommendations
+Recommendations are based on:
+- 🌡️ **Temperature**
+- 💧 **Humidity**
+- 🌧️ **Rainfall**
+- 🧪 **Soil pH**
+- 🌱 **Soil Type**
+- 🌤️ **Season**
 
-🟡 **Economic Evaluation**
-- 💸 Production Cost  
-- 💰 Market Price  
-- 📈 Yield & Profit Calculation  
+### 💸 Economic Evaluation
+Each recommended seed includes:
+- Production Cost (₹/acre)
+- Market Price (₹/quintal)
+- Yield Estimate (quintals/acre)
+- **Profit Calculation**: Automatically computed as `(yield × price) - cost`
 
-🔵 **User Profile History**
-- 🧠 Personalized experience  
-- 💾 Auto-saved input & output history  
+### 🧠 Personalized User Profiles
+- Saves user-specific input history and past recommendations to disk.
+- Supports multiple sessions per user.
+- Recommendations can be revisited any time.
 
 ---
 
-## 🖥️ How it Looks
+## 🖥️ How It Works (Example)
 
 ```plaintext
 === Smart Seed Recommender ===  
@@ -54,23 +57,68 @@ Session 1:
 
 ⚠️ Input Requirement Notice
 
-Please make sure all inputs are exact and valid.
-The application expects precise entries for:
+Please ensure all inputs are valid and correctly spelled to avoid errors or empty recommendations.
 
-🌡️ Temperature (e.g., 28.0)
+The application expects:
 
-💧 Humidity (e.g., 70.0)
+Input Parameter	Example	Valid Range / Notes
 
-🌧️ Rainfall (e.g., 1000.0)
-
-🧪 Soil pH (e.g., 6.8)
-
-🌱 Soil Type (e.g., clay, loamy, etc.)
-
-🌤️ Season (e.g., kharif, rabi, zaid)
+🌡️ Temperature	28.0	0°C to 60°C
+💧 Humidity	70.0	0% to 100%
+🌧️ Rainfall	1000.0	0 mm/year to 5000 mm/year
+🧪 Soil pH	6.8	3.5 to 9.0
+🌱 Soil Type	clay	loamy, clay, sandy, black, silty, peaty, saline, laterite, red
+🌤️ Season	kharif	kharif, rabi, zaid
 
 
-⚠️ If any input is misspelled, invalid, or missing, the system will show a warning or may fail to provide recommendations.
-Always check the values and their spelling before submitting.
+⚠️ If any input is misspelled, missing, or outside the valid range, the system will show a warning or may not return any recommendations.
 
-          *********************
+
+---
+
+📂 Supported Crops
+
+Includes over 20+ crops spanning:
+
+Kharif crops (e.g., Rice, Maize, Cotton)
+
+Rabi crops (e.g., Wheat, Barley, Gram)
+
+Zaid crops (e.g., Watermelon, Cucumber)
+
+Perennial crops (e.g., Tea, Coffee, Sugarcane)
+
+
+Each crop has detailed suitability parameters and economic data.
+
+
+---
+
+💾 Data Persistence
+
+All user interactions and seed recommendations are saved to a .txt file named as {username}_history.txt
+
+Session history is reloaded each time the user logs in
+
+
+
+---
+
+📈 Profit Formula
+
+profit = (yieldPerAcre * marketPrice) - productionCost
+
+Each crop’s profitability is calculated based on user’s area input and shown alongside suitability.
+
+
+---
+
+🛠️ Technologies Used
+
+Java
+
+JavaFX (for ObservableList support; GUI integration ready)
+
+File I/O (for persistence)
+
+OOP principles with nested classes for seed data, user profile, and area
