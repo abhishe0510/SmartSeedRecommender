@@ -1,19 +1,16 @@
 package gui;
 
 import javafx.application.Application;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import gui.SmartSeedRecommender.AreaDetails;
 import gui.SmartSeedRecommender.Seed;
+
 import java.util.List;
-import java.util.Optional;
 
 public class SeedRecommenderGUI extends Application {
 
@@ -64,44 +61,48 @@ public class SeedRecommenderGUI extends Application {
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
 
-        ListView<Seed> resultList = new ListView<>();
-        resultList.setPlaceholder(new Label("No recommendations yet."));
-        resultList.setCellFactory(lv -> new ListCell<>() {
-            private final VBox vbox = new VBox(2);
-            private final Label nameLabel = new Label();
-            private final Label detailsLabel = new Label();
-            {
-                nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-                detailsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
-                detailsLabel.setWrapText(true);
-                vbox.getChildren().addAll(nameLabel, new Separator(), detailsLabel);
-                vbox.setPadding(new Insets(5));
-            }
-            @Override
-            protected void updateItem(Seed seed, boolean empty) {
-                super.updateItem(seed, empty);
-                if (empty || seed == null) {
-                    setGraphic(null);
-                } else {
-                    String soilTitle = seed.suitableSoil.substring(0, 1).toUpperCase() + seed.suitableSoil.substring(1);
-                    String seasonTitle = seed.getCategory().substring(0, 1).toUpperCase() + seed.getCategory().substring(1);
-                    nameLabel.setText(seed.getName() + "  (" + seasonTitle + ")");
-                    String summary = String.format(
-                            "Soil: %s    Temp: %.0f–%.0f°C    Humidity: %.0f–%.0f%%\n" +
-                                    "Rainfall: %.0f–%.0f mm    pH: %.1f–%.1f\n" +
-                                    "Cost: ₹%.0f/acre    Price: ₹%.0f/quintal    Yield: %.0f qtl/acre",
-                            soilTitle, seed.minTemp, seed.maxTemp,
-                            seed.minHumidity, seed.maxHumidity,
-                            seed.minRainfall, seed.maxRainfall,
-                            seed.minPH, seed.maxPH,
-                            seed.productionCost, seed.marketPrice,
-                            seed.yieldPerAcre);
-                    detailsLabel.setText(summary);
-                    setGraphic(vbox);
-                }
-            }
-        });
+        // TableView instead of ListView
+        TableView<Seed> resultTable = new TableView<>();
+        resultTable.setPlaceholder(new Label("No recommendations yet."));
 
+        // Table columns
+        TableColumn<Seed, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
+
+        TableColumn<Seed, String> soilCol = new TableColumn<>("Soil");
+        soilCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().suitableSoil));
+
+        TableColumn<Seed, String> tempCol = new TableColumn<>("Temp (°C)");
+        tempCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("%.0f–%.0f", data.getValue().minTemp, data.getValue().maxTemp)));
+
+        TableColumn<Seed, String> humidityCol = new TableColumn<>("Humidity (%)");
+        humidityCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("%.0f–%.0f", data.getValue().minHumidity, data.getValue().maxHumidity)));
+
+        TableColumn<Seed, String> rainfallCol = new TableColumn<>("Rainfall (mm)");
+        rainfallCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("%.0f–%.0f", data.getValue().minRainfall, data.getValue().maxRainfall)));
+
+        TableColumn<Seed, String> phCol = new TableColumn<>("pH");
+        phCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("%.1f–%.1f", data.getValue().minPH, data.getValue().maxPH)));
+
+        TableColumn<Seed, String> costCol = new TableColumn<>("Cost (₹/acre)");
+        costCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("₹%.0f", data.getValue().productionCost)));
+
+        TableColumn<Seed, String> priceCol = new TableColumn<>("Price (₹/quintal)");
+        priceCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("₹%.0f", data.getValue().marketPrice)));
+
+        TableColumn<Seed, String> yieldCol = new TableColumn<>("Yield (qtl/acre)");
+        yieldCol.setCellValueFactory(data -> new SimpleStringProperty(
+                String.format("%.0f", data.getValue().yieldPerAcre)));
+
+        resultTable.getColumns().addAll(nameCol, soilCol, tempCol, humidityCol, rainfallCol, phCol, costCol, priceCol, yieldCol);
+
+        // Slider listeners to update labels
         tempSlider.valueProperty().addListener((obs, oldVal, newVal) -> tempValueLabel.setText(String.valueOf(newVal.intValue() / 5 * 5)));
         humiditySlider.valueProperty().addListener((obs, oldVal, newVal) -> humidityValueLabel.setText(String.valueOf(newVal.intValue() / 10 * 10)));
         rainfallSlider.valueProperty().addListener((obs, oldVal, newVal) -> rainfallValueLabel.setText(String.valueOf(newVal.intValue() / 100 * 100)));
@@ -118,23 +119,23 @@ public class SeedRecommenderGUI extends Application {
 
                 if (soilType == null || season == null) {
                     errorLabel.setText("⚠️ Please fill all fields.");
-                    resultList.getItems().clear();
-                    resultList.setPlaceholder(new Label("⚠️ Please fill all fields."));
+                    resultTable.getItems().clear();
+                    resultTable.setPlaceholder(new Label("⚠️ Please fill all fields."));
                     return;
                 }
                 errorLabel.setText("");
                 AreaDetails area = new AreaDetails(temperature, humidity, rainfall, soilPH, soilType, season);
                 List<Seed> recommendations = SmartSeedRecommender.getRecommendations(area);
                 if (recommendations.isEmpty()) {
-                    resultList.getItems().clear();
-                    resultList.setPlaceholder(new Label("❌ No suitable seeds found for the given conditions."));
+                    resultTable.getItems().clear();
+                    resultTable.setPlaceholder(new Label("❌ No suitable seeds found for the given conditions."));
                 } else {
-                    resultList.getItems().setAll(recommendations);
+                    resultTable.getItems().setAll(recommendations);
                 }
             } catch (Exception ex) {
                 errorLabel.setText("❌ Unexpected error: " + ex.getMessage());
-                resultList.getItems().clear();
-                resultList.setPlaceholder(new Label("❌ Unexpected error occurred."));
+                resultTable.getItems().clear();
+                resultTable.setPlaceholder(new Label("❌ Unexpected error occurred."));
                 ex.printStackTrace();
             }
         });
@@ -142,8 +143,8 @@ public class SeedRecommenderGUI extends Application {
         clearBtn.setOnAction(e -> {
             soilComboBox.setValue(null);
             seasonComboBox.setValue(null);
-            resultList.getItems().clear();
-            resultList.setPlaceholder(new Label("No recommendations yet."));
+            resultTable.getItems().clear();
+            resultTable.setPlaceholder(new Label("No recommendations yet."));
             errorLabel.setText("");
         });
 
@@ -179,9 +180,9 @@ public class SeedRecommenderGUI extends Application {
 
         VBox layout = new VBox(15);
         layout.setStyle("-fx-padding: 20;");
-        layout.getChildren().addAll(titleLabel, inputGrid, darkModeToggle, buttonBox, errorLabel, resultList);
+        layout.getChildren().addAll(titleLabel, inputGrid, darkModeToggle, buttonBox, errorLabel, resultTable);
 
-        Scene scene = new Scene(layout, 620, 640);
+        Scene scene = new Scene(layout, 1000, 640); // Increased width for table
         primaryStage.setTitle("Smart Seed Recommender");
         primaryStage.setScene(scene);
         primaryStage.show();
