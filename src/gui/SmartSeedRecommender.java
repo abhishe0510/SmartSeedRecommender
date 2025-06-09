@@ -2,8 +2,24 @@ package gui;
 
 import java.io.*;
 import java.util.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class SmartSeedRecommender {
+
+    /*** STEP 2: One shared seed list for the entire app ***/
+    private static final ObservableList<Seed> seedDatabase = FXCollections.observableArrayList();
+
+    // Static initializer: populate once from your sample data
+    static {
+        seedDatabase.addAll(initializeSeedDatabase());
+    }
+
+    /** Allow anyone (dialogs, controllers) to fetch the shared list */
+    public static ObservableList<Seed> getSeedDatabase() {
+        return seedDatabase;
+    }
+
 
     // Class to store area details
     static class AreaDetails {
@@ -55,6 +71,7 @@ public class SmartSeedRecommender {
             this.marketPrice = marketPrice;
             this.yieldPerAcre = yieldPerAcre;
         }
+
         @Override
         public String toString() {
             return name + " | Season: " + season +
@@ -67,9 +84,10 @@ public class SmartSeedRecommender {
                     "\nPrice: ₹" + marketPrice + "/quintal" +
                     "\nYield: " + yieldPerAcre + " quintal/acre\n";
         }
+
         public static List<Seed> getRecommendations(String soilType, double temperature, double humidity) {
             soilType = soilType.toLowerCase();  // normalize input
-            List<Seed> seeds = initializeSeedDatabase();
+            ObservableList<Seed> seeds = getSeedDatabase();
             List<Seed> recommendedSeeds = new ArrayList<>();
 
             for (Seed seed : seeds) {
@@ -116,7 +134,19 @@ public class SmartSeedRecommender {
         public double calculateProfit() {
             return (yieldPerAcre * marketPrice) - productionCost;
         }
+
+        /** Return the seed’s name for display in GUI. */
+        public String getName() {
+            return name;
+        }
+
+        /** Return the seed’s “category” (we’ll reuse season). */
+        public String getCategory() {
+            return season;
+        }
+
     }
+
 
     // User profile class to store history
     static class UserProfile {
@@ -214,7 +244,7 @@ public class SmartSeedRecommender {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        List<Seed> seeds = initializeSeedDatabase();
+        ObservableList<Seed> seeds = getSeedDatabase();
 
         System.out.println("=== Smart Seed Recommender ===");
 
@@ -414,19 +444,25 @@ public class SmartSeedRecommender {
         return seeds;
 
     }
-    public static List<Seed> getRecommendations(String soilType, double temperature, double humidity) {
-        List<Seed> seeds = initializeSeedDatabase();
-        List<Seed> recommendedSeeds = new ArrayList<>();
 
-        for (Seed seed : seeds) {
-            if (seed.suitableSoil.equalsIgnoreCase(soilType) &&
-                    temperature >= seed.minTemp && temperature <= seed.maxTemp &&
-                    humidity >= seed.minHumidity && humidity <= seed.maxHumidity) {
-                recommendedSeeds.add(seed);
+    /*
+    * Full-criteria recommendations for GUI:
+    * checks temperature, humidity, rainfall, pH, soil type & season.
+    */
+    public static List<Seed> getRecommendations(AreaDetails area) {
+        // 1) Grab the one shared seed list
+        List<Seed> seeds = getSeedDatabase();
+
+        // 2) Filter for suitability
+        List<Seed> recommended = new ArrayList<>();
+        for (Seed s : seeds) {
+            if (s.isSuitable(area)) {
+                recommended.add(s);
             }
         }
 
-        return recommendedSeeds;
+        // 3) Return the matches
+        return recommended;
     }
 
 
